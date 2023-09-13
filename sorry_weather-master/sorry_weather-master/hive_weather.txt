@@ -1,0 +1,205 @@
+
+表字段:
+province string,
+city string,
+time string,
+w_date date,
+day string,
+weather string,
+maxTemp string,
+minTemp string,
+precipitation string,
+temperature string,
+windSpeed string,
+windForce string,
+windDirection string,
+airPressure string,
+humidity string
+
+
+
+
+创建ods层的表
+-----ods_weather_data
+create table ods_weather_data(data string) row format delimited fields terminated by '\t' stored as textfile; 
+导入数据：
+load data local inpath '/opt/weather/data.json' into table ods_weather_data ;
+
+创建dwd层的表：
+create table dwd_weather_data(province string,city string,time string,w_date string,day string,weather string,
+maxTemp string,minTemp string,precipitation string,temperature string,
+windSpeed string,windForce string,windDirection string,airPressure string,humidity string)
+row format delimited fields terminated by '\t' stored as textfile; 
+
+
+---- 导入数据到DWD层表数据
+insert into table dwd_weather_data
+select 
+get_json_object(data,'$.province') province,
+get_json_object(data,'$.city') city,
+get_json_object(data,'$.time') time,
+get_json_object(data,'$.date') w_date,
+get_json_object(data,'$.day') day,
+get_json_object(data,'$.weather') weather,
+get_json_object(data,'$.maxTemp') maxTemp,
+get_json_object(data,'$.minTemp') minTemp,
+get_json_object(data,'$.precipitation') precipitation,
+get_json_object(data,'$.temperature') temperature,
+get_json_object(data,'$.windSpeed') windSpeed,
+get_json_object(data,'$.windForce') windForce,
+get_json_object(data,'$.windDirection') windDirection,
+get_json_object(data,'$.airPressure') airPressure,
+get_json_object(data,'$.humidity') humidity
+from  
+ods_weather_data;
+
+------创建dws层的表
+1、 create table dws_wae_day(province string,city string,weather string,maxtemp string,mintemp string) row format delimited fields terminated by '\t' stored as textfile;
+insert into table dws_wae_day
+select 
+province,
+city,
+weather,
+maxtemp,
+mintemp
+from 
+dwd_weather_data;
+2、 create table dws_wae_mndfs(province string,city string,weather string,maxtemp string,mintemp string,windSpeed string,windForce string,windDirection string) row format delimited fields terminated by '\t' stored as textfile;
+insert into table dws_wae_mndfs
+select 
+province,
+city,
+weather,
+maxtemp,
+mintemp,
+windSpeed,
+windForce,
+windDirection
+from 
+dwd_weather_data;
+3、create table dws_wae_precTem(province string,city string,weather string,precipitation string,humidity string) row format delimited fields terminated by '\t' stored as textfile;
+insert into table dws_wae_prectem
+select 
+province,
+city,
+weather,
+precipitation,
+humidity
+from 
+dwd_weather_data
+
+
+----创建ads层的表
+
+需求：
+ 
+1、全国所有最高气温，并进行排序
+create table ads_wae_temp(province string,city string,maxtemp string,rank int) row format delimited fields terminated by '\t' stored as textfile;
+insert into table ads_wae_temp
+select 
+province,
+city,
+maxtemp,
+row_number() over(order by maxtemp desc) rank
+from 
+dwd_weather_data
+order by rank;
+
+
+
+
+2.统计全国温度情况、天气气象
+ create table ads_wae_weatherTemp(province string,city string,w_date string,weather string,maxtemp string,mintemp string,rank int) row format delimited fields terminated by '\t' stored as textfile;
+
+insert into table ads_wae_weatherTemp
+select 
+province,
+city,
+w_date,
+weather,
+maxtemp,
+mintemp,
+row_number() over(order by mintemp) rank
+from 
+dwd_weather_data
+order by rank;
+3、.统计全国的风向、风速、风力
+ create table ads_wae_sfd(province string,city string,windSpeed string,windForce string,windDirection string,rank int) row format delimited fields terminated by '\t' stored as textfile;
+insert into table ads_wae_sfd
+select 
+province,
+city,
+windSpeed,
+windForce,
+windDirection,
+row_number() over(order by windSpeed) rank
+from 
+dwd_weather_data
+order by rank;
+
+4.统计全国各省的降雨量（平均降雨量和最高降雨量）
+create table ads_wae_prec(province string,city string,precipitation string,rank int) row format delimited fields terminated by '\t' stored as textfile;
+insert overwrite table ads_wae_prec
+select 
+province,
+city,
+precipitation,
+row_number() over(order by precipitation desc) rank
+from 
+dwd_weather_data
+order by rank;
+5、统计全国各省每日温度
+create table ads_wae_tem(province string,city string,temperature string,rank int) row format delimited fields terminated by '\t' stored as textfile;
+insert overwrite table ads_wae_tem
+select 
+province,
+city,
+temperature,
+row_number() over(order by temperature desc) rank
+from 
+dwd_weather_data
+order by rank;
+6、统计全国空气湿度情况
+create table ads_wae_hum(province string,city string,humidity string,rank int) row format delimited fields terminated by '\t' stored as textfile;
+
+insert overwrite table ads_wae_hum
+select 
+province,
+city,
+humidity,
+row_number() over(order by humidity desc) rank
+from 
+dwd_weather_data
+order by rank；
+
+7、统计全国压强情况
+create table ads_wae_air(province string,city string,airPressure string,rank int) row format delimited fields terminated by '\t' stored as textfile;
+insert overwrite table ads_wae_air
+select 
+province,
+city,
+airPressure,
+row_number() over(order by airPressure desc) rank
+from 
+dwd_weather_data
+order by rank；
+
+
+
+------将ads层的表导出mysql,最后可视化。
+
+
+sqoop export --connect "jdbc:mysql://hadoop01:3306/weather?useSSL=false&useUnicode=true&characterEncoding=utf-8" --username root --password 123456 --table ads_wae_air --export-dir /user/hive/warehouse/weather_db.db/ads_wae_air --num-mappers 1 --fields-terminated-by "\t"
+sqoop export --connect "jdbc:mysql://hadoop01:3306/weather?useSSL=false&useUnicode=true&characterEncoding=utf-8" --username root --password 123456 --table ads_wae_hum --export-dir /user/hive/warehouse/weather_db.db/ads_wae_hum --num-mappers 1 --fields-terminated-by "\t"
+sqoop export --connect "jdbc:mysql://hadoop01:3306/weather?useSSL=false&useUnicode=true&characterEncoding=utf-8" --username root --password 123456 --table ads_wae_maxtemp --export-dir /user/hive/warehouse/weather_db.db/ads_wae_temp --num-mappers 1 --fields-terminated-by "\t"
+sqoop export --connect "jdbc:mysql://hadoop01:3306/weather?useSSL=false&useUnicode=true&characterEncoding=utf-8" --username root --password 123456 --table ads_wae_prec --export-dir /user/hive/warehouse/weather_db.db/ads_wae_prec --num-mappers 1 --fields-terminated-by "\t"
+sqoop export --connect "jdbc:mysql://hadoop01:3306/weather?useSSL=false&useUnicode=true&characterEncoding=utf-8" --username root --password 123456 --table ads_wae_sfd --export-dir /user/hive/warehouse/weather_db.db/ads_wae_sfd --num-mappers 1 --fields-terminated-by "\t"
+sqoop export --connect "jdbc:mysql://hadoop01:3306/weather?useSSL=false&useUnicode=true&characterEncoding=utf-8" --username root --password 123456 --table ads_wae_tem --export-dir /user/hive/warehouse/weather_db.db/ads_wae_tem --num-mappers 1 --fields-terminated-by "\t"
+sqoop export --connect "jdbc:mysql://hadoop01:3306/weather?useSSL=false&useUnicode=true&characterEncoding=utf-8" --username root --password 123456 --table ads_wae_wetemp --export-dir /user/hive/warehouse/weather_db.db/ads_wae_weathertemp --num-mappers 1 --fields-terminated-by "\t"
+
+
+
+
+
+
+

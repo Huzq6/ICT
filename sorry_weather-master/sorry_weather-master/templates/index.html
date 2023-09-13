@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title></title>
+    <link href="{{url_for('static',filename='css/index.css')}}" rel="stylesheet" />
+</head>
+<body>
+    <div class="content">
+        <div class="left">
+            <!--气压-->
+            <div class="air">
+                <div class="air-title title numfont">气压</div>
+                <div class="air-relative">
+                    <div class="air-val">
+                        <span class="air-icon"></span>
+                        <div class="numfont">
+                            <p class="hpa-rel"></p>
+                            <p class="hpa-nam">相对压力</p>
+                        </div>
+                    </div>
+                    <div class="gray">
+
+                    </div>
+                    <div class="light">
+
+                    </div>
+                    <div class="unit">KPA</div>
+                </div>
+
+            </div>
+            <!--气压 end-->
+            <!--温度和湿度-->
+            <div class="tem-hum">
+                <div class="temperature">
+                    <div class="tem-hum-title numfont">温 度</div>
+                    <div class="tem-hum-chart" id="temChart">
+
+                    </div>
+                    <div class="tem-val">
+                        <span class="indoor">22℃</span>
+                        <span class="outdoor">33℃</span>
+                    </div>
+                </div>
+                <div class="humidity">
+                    <div class="tem-hum-title numfont">湿 度</div>
+                    <div class="tem-hum-chart" id="humChart">
+
+                    </div>
+                    <div class="hum-val">
+                        <span class="indoor">22%</span>
+                        <span class="outdoor">33%</span>
+                    </div>
+                </div>
+            </div>
+            <!--温度和湿度 end-->
+            <!--温度一周k线图-->
+            <div class="temp-k">
+                <div class="title numfont">前后一周温度图</div>
+                <div id="tempKChart">
+
+                </div>
+            </div>
+            <!--温度一周k线图 end-->
+
+            <!--湿度一走k线图-->
+            <div class="dity-k">
+                <div class="title numfont">未来24小时天气情况</div>
+                <div id="dityKChart">
+
+                </div>
+            </div>
+            <!--湿度一走k线图 end-->
+        </div>
+        <div class="middle">
+            <div class="headTitle">全国天气可视化平台</div>
+            <!--地图-->
+            <div class="chinaMap" style="color: white;">
+                <div class="circle0"></div>
+
+                <div id="btn" style="display: none;">
+                    <div style="position: relative;">
+                        <div class="btn0"></div>
+                        <div class="btn1"></div>
+                        <div class="btn2"></div>
+                    </div>
+                </div>
+
+                <div class="mapBox">
+                    <div id="map">
+
+                    </div>
+                </div>
+                <div class="circle1"></div>
+            </div>
+            <!--地图  end-->
+            <!--动画-->
+            <div style="width:90%;margin-left:45px;color: #B0CC35;text-align: center;font-size: 20px;">
+                <marquee direction="left" class="zm"></marquee>
+            </div>
+            <div style="color: #B0CC35;text-align: center;font-size: 20px"> 王晶 </div>
+            <div style="color: #B0CC35;text-align: center;font-size: 32px">气象管理系统</div>
+            <!--动画 end-->
+        </div>
+        <div class="right">
+            <div class="information">
+                <!--基本信息-->
+                <div class="baseInfo">
+                    <p class="infoTitle">城市</p>
+                    <p class="area">请选择地区</p>
+                    <p class="infoTitle">
+                        日期
+                        <span id='date' class="date">2021-08-31</span>
+                    </p>
+                    <p class="infoTitle">
+                        时段
+                        <span class="idNum">白天</span>
+                    </p>
+                    <p class="infoTitle">
+                        <span class="infoTitle" style="display: inline-block;margin-right: 40px;">天气气象</span>
+                        <span class="days">请选择地区</span>
+                    </p>
+                    <p class="infoTitle">
+                        <span class="infoTitle" style="display: inline-block;margin-right: 40px;">空气质量</span>
+                        <span class="air_q">请选择地区</span>
+                    </p>
+                </div>
+                <!--基本信息 end-->
+                <!--温度/露点/风寒/热指数-->
+                <div class="temData">
+                    <p class="infoTitle">当前气温</p>
+                    <p class="temperatureC"><a>0</a>℃</p>
+                    <p class="infoTitle" style="margin-bottom: 0;font-size: 12px;">今日温度情况</p>
+                    <p class="temTitle">最高气温</p>
+                    <p class="indoorTem"><span class="temperatureN">0</span></p>
+                    <p class="infoTitle point">
+                        最低气温&nbsp;
+                        <span class="dewpoint" style="color: #B0CC35;font-size: 16px">0℃</span>
+                    </p>
+                </div>
+                <!--温度/露点/风寒/热指数 end-->
+            </div>
+            <!--风-->
+            <div class="wind">
+                <div class="air-title title numfont" >风向/风力</div>
+                <div id="windChart">
+
+                </div>
+                <div class="windData">
+                    <div class="windSpeed">
+                        <div class="windTitle numfont">今日风力</div>
+                        <div class="windBox">
+                            <div style="width: 33%;margin-left: 4%;">
+                                <p>当前风速</p>
+                                <p><span class="currentSpeed" id="nowWind">0</span>M/S</p>
+                            </div>
+                            <div style="width: 33%;">
+                                <p>风力等级</p>
+                                <p><span class="highestSpeed" id="highWind">0</span>级</p>
+                            </div>
+                            <div style="width: 30%">
+                                <div class="windWrap">
+                                    <img src="{{url_for('static',filename='img/wind1.png')}}" class="windFan">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="windSpeed">
+                        <div class="windTitle numfont">本周风力</div>
+                        <div class="windBox">
+                            <div style="width: 33%;margin-left: 4%;">
+                                <p>平均风速</p>
+                                <p><span class="currentSpeed" id="nowGust">0</span>M/S</p>
+                            </div>
+                            <div style="width: 33%;">
+                                <p>风力等级</p>
+                                <p><span class="highestSpeed" id="highGust">0</span>级</p>
+                            </div>
+                            <div style="width: 30%">
+                                <div class="windWrap">
+                                    <img src="{{url_for('static',filename='img/wind1.png')}}" class="windFan">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!--风 end-->
+            <!--降雨量-->
+            <div class="rainfall">
+                <div class="air-title title numfont">降雨量</div>
+                <div class="windData">
+                    <div class="windSpeed">
+                        <div class="windTitle numfont">当前降雨量</div>
+                        <div class="windBox">
+                            <div style="width: 33%;margin-left: 4%;">
+                                <p>当前降雨量</p>
+                                <p><span id="currentPre" class="currentSpeed" id="nowDay">0</span>MM</p>
+                            </div>
+                            <div style="width: 31%;margin-left: 2%">
+                                <p>最高降雨量</p>
+                                <p><span id="currentmaxPre"class="highestSpeed" id="highDay">0</span>MM</p>
+                            </div>
+                            <div style="width: 30%">
+                                <div class="rainWrap" style="margin: 10px auto;text-align: center;">
+                                    <canvas id="rainfallOne" ></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="gust">
+                        <div class="windTitle numfont">最近一周降雨量</div>
+                        <div class="windBox">
+                            <div style="width: 33%;margin-left: 4%;">
+                                <p>平均降雨量</p>
+                                <p><span class="currentSpeed" id="nowWeek">0</span>MM</p>
+                            </div>
+                            <div style="width: 31%;margin-left: 2%">
+                                <p>最高降雨量</p>
+                                <p><span class="highestSpeed" id="highWeek">0</span>MM</p>
+                            </div>
+                            <div style="width: 30%">
+                                <div class="rainWrap" style="margin: 10px auto;text-align: center;">
+                                    <canvas id="rainfallTwo"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="windData">
+                    <div class="windSpeed">
+                        <div class="windTitle numfont">当日降雨量</div>
+                        <div class="windBox">
+                            <div style="width: 33%;margin-left: 4%;">
+                                <p>平均降雨量</p>
+                                <p><span id="todaypre" class="currentSpeed" id="nowMonth">0</span>MM</p>
+                            </div>
+                            <div style="width: 31%;margin-left: 2%">
+                                <p>最高降雨量</p>
+                                <p><span id="todaymaxpre" class="highestSpeed" id="highMonth">0</span>MM</p>
+                            </div>
+                            <div style="width: 30%">
+                                <div class="rainWrap" style="margin: 10px auto;text-align: center;">
+                                    <canvas id="rainfallThree"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!--降雨量 end-->
+        </div>
+    </div>
+    <script src="{{url_for('static',filename='js/jquery-3.2.1.min.js')}}"></script>
+    <script src="{{url_for('static',filename='js/echarts.js')}}"></script>
+    <script src="{{url_for('static',filename='js/china.js')}}"></script>
+    <script src="{{url_for('static',filename='js/render.js')}}"></script>
+    <script src="{{url_for('static',filename='js/myjs.js')}}"></script>
+    <script src="{{url_for('static',filename='js/show.js')}}"></script>
+
+</body>
+</html>
